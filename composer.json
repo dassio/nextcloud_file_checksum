@@ -1,0 +1,15 @@
+{
+    "name": "File Checksum",
+    "description": "manage file checksum for better sync",
+    "type": "project",
+    "license": "AGPL",
+    "authors": [
+        {
+            "name": "xiangbin li"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^5.4"
+    }
+}

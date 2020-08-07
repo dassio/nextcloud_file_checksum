@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>filechecksum</id>
+    <name>File Checksum</name>
+    <summary>manage file checksum for better sync</summary>
+    <description><![CDATA[manage file checksum for better sync]]></description>
+    <version>0.0.1</version>
+    <licence>agpl</licence>
+    <author mail="dassio_98@163.com" >xiangbin li</author>
+    <namespace>FileChecksum</namespace>
+    <category>tools</category>
+    <bugs>https://github.com/dassio/nextcloud_file_checksum</bugs>
+    <dependencies>
+        <nextcloud min-version="15" max-version="15"/>
+    </dependencies>
+
+    <settings>
+		<personal>OCA\FileChecksum\Settings\Personal</personal>
+	</settings>
+
+
+</info>
