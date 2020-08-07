@@ -10,7 +10,6 @@
 return [
     'routes' => [
 	   ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
-       ['name' => 'home#getCurrentFolderItems', 'url' => '/api/current/{path}', 'verb' => 'GET'],
        ['name' => 'home#getChecksumStatistic', 'url' => '/api/statistic/{folder}', 'verb' => 'GET'],
     ]
 ];

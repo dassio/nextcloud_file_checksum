@@ -45,14 +45,6 @@ class HomeController extends Controller
 		return new TemplateResponse('filechecksum', 'index');  // templates/index.php
 	}
 
-	public function getCurrentFolderItems(): JSONResponse{
-		$userFolder = $this->rootFolder->getUserFolder($this->userId);
-		$data = $this->scanCurrentFolder($userFolder, false);
-		$result = $this->formatData($data);
-
-		return new JSONResponse($result, Http::STATUS_OK);
-	}
-
 	private function formatData(iterable $nodes): array
 	{
 		$userFolder = $this->rootFolder->getUserFolder($this->userId);
