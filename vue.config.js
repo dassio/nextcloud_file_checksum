@@ -8,10 +8,19 @@ module.exports = {
         },
         plugins: [
             new MiniCssExtractPlugin({
-                chunkFilename: '../css/[id].css',
-                filename: "../css/[name].css"
+                filename: "../css/style.css",
+                chunkFilename: "../css/[name].css"
             }),
         ],
+        module: {
+            rules: [{
+                test: /\.(png|jpe?g|gif)$/i,
+                loader: 'file-loader',
+                options: {
+                    outputPath: '../img',
+                },
+            }, ]
+        },
     },
     outputDir: "./js",
     // disable hashes in filenames
