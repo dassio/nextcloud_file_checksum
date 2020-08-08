@@ -10,6 +10,10 @@
 return [
     'routes' => [
 	   ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
-       ['name' => 'home#getChecksumStatistic', 'url' => '/api/statistic/{folder}', 'verb' => 'GET'],
+       [
+            'name' => 'file_checksum_api#get_checksum_statistic',
+            'url' => '/api/statistic{folder}', 
+            'verb' => 'GET',
+            'defaults' => array('folder' => 'root')],
     ]
 ];
