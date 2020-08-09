@@ -30,8 +30,7 @@ class FileChecksumApiController extends ApiController
 	}
 
 	/**
-	 * @CORS
-	 * @NoCSRFRequired
+	 * @NoAdminRequired
 	 * @param string $folder
 	 *
 	 * getting all files checksum information
@@ -60,7 +59,9 @@ class FileChecksumApiController extends ApiController
 		foreach ($nodes as $node) {
 			if ($node instanceof Folder) {
 				foreach ( $this->scanCurrentFolderFiles($node) as $subnode) {
-					yield $subnode;
+					if ($subnode instanceof File){
+						yield $subnode;
+					} 
 				}
 			} elseif ($node instanceof File) {
 				yield $node;
