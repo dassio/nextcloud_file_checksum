@@ -2,94 +2,61 @@
 
 namespace OCA\FileChecksum\Controller;
 
-use OCA\Files_External\Config\ExternalMountPoint;
 use OCP\IRequest;
-
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\ApiController;
 use OCP\Files\IRootFolder;
-use OCP\Files\File;
-use OCP\Files\Folder;
-use OCP\FIles\Node;
+use \OCP\BackgroundJob\IJobList;
+use OCP\ISession;
+
+use OCA\FileChecksum\Service\FileList;
 
 class FileChecksumApiController extends ApiController
 {
 
 	/** @var string */
 	private $userId;
-	/** @var IRootFolder */
-	private $rootFolder;
+	/** @var IJobList */
+	private $jobList;
+	/** @var ISession */
+	private $session;
 
-	public function __construct($AppName, IRequest $request, string $userId, IRootFolder $rootFolder)
+	public function __construct($AppName, IRequest $request, 
+								ISession $session,
+								string $userId, 
+								IJobList $jobList)
 	{
 		parent::__construct($AppName, $request);
 		$this->userId = $userId;
-		$this->rootFolder = $rootFolder;
+		$this->jobList = $jobList;
+		$this->session = $session;
+		$this->session['file_count_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_filechecksum_count');
+		$this->session['json_result_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_filechecksum_result');
+
 	}
 
 	/**
-	 * @CORS
-	 * @NoCSRFRequired
+	 * @NoAdminRequired
 	 * @param string $folder
 	 *
 	 * getting all files checksum information
 	 */
 	public function  getChecksumStatistic(string $folder): JSONResponse
 	{
-		if ($folder == 'root') {
-			$userFolder = $this->rootFolder->getUserFolder($this->userId);
-		} else {
-			$userFolder = $this->rootFolder->getPath($folder);
-		}
+		$this->jobList->add(FileList::class, 
+							['uid' => $this->userId,
+							'folder'=>$folder,
+							'file_count_temp_file'=>$this->session['file_count_temp_file'],
+							'json_result_temp_file'=>$this->session['json_result_temp_file']
+							]);
+		// putenv("SHELL=/bin/bash");
+		// print `echo /usr/bin/php -q /var/www/html/cron.php | at now 2>&1`;
+		exec('/usr/local/bin/php -q /var/www/html/cron.php  > /dev/null 2>&1 &');
 
-		$data = $this->scanCurrentFolderFiles($userFolder);
-		$result = $this->formatData($data);
-
+		$result[] = ["status"=>"submit_ok"];
 		return new JSONResponse($result, Http::STATUS_OK);
-	}
-
-	/**
-	 * @param string $folder
-	 */
-	private function scanCurrentFolderFiles(Folder $folder): iterable
-	{
-		$nodes = $folder->getDirectoryListing();
-
-		foreach ($nodes as $node) {
-			if ($node instanceof Folder) {
-				foreach ( $this->scanCurrentFolderFiles($node) as $subnode) {
-					yield $subnode;
-				}
-			} elseif ($node instanceof File) {
-				yield $node;
-			}
-		}
-	}
-
-
-	private function formatData(iterable $nodes): array
-	{
-		$userFolder = $this->rootFolder->getUserFolder($this->userId);
-
-		$result = [];
-		/** @var Node $node */
-		foreach ($nodes as $node) {
-			$isRoot = $node === $userFolder;
-			$external = $node->getMountPoint() instanceof ExternalMountPoint;
-			$path = $userFolder->getRelativePath($node->getPath());
-
-			$result[] = [
-				'basename' => $isRoot ? '' : $node->getName(),
-				'fileid' => $node->getId(),
-				'filename' => $path,
-				'size' => $node->getSize(),
-				'type' => $node->getType(),
-				'external' => $external
-			];
-		}
-		return $result;
 	}
 }
 ?>

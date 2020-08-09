@@ -9,10 +9,10 @@ use OCP\AppFramework\Db\QBMapper;
 
 class FileCacheMapper extends QBMapper {
 
-    private $table_name = 'oc_filecache';
+    private $table_name = 'oca_filechecksum_jobs';
 
     public function __construct(IDBConnection $db) {
-        parent::__construct($db, 'oc_filecache');
+        parent::__construct($db, $this->table_name);
     }
 
 
@@ -33,23 +33,4 @@ class FileCacheMapper extends QBMapper {
 
         return $this->findEntity($qb);
     }
-
-
-    public function findCurrentDir(string $folder_name) {
-        $qb = $this->db->getQueryBuilder();
-
-        $qb->select('fileid,path,etag,chedk,checksum')
-           ->from($this->table_name)
-           ->where(
-               $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_string))
-           );
-
-        return $this->findEntity($qb);
-    }
-
-
-    public function FileNumCount($name) {
-        
-    }
-
 }

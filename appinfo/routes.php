@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Create your routes in here. The name is the lowercase name of the controller
  * without the controller part, the stuff after the hash is the method.
@@ -9,11 +10,17 @@
  */
 return [
     'routes' => [
-	   ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
-       [
+        ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
+        [
             'name' => 'file_checksum_api#get_checksum_statistic',
-            'url' => '/api/statistic{folder}', 
+            'url' => '/api/statistic{folder}',
             'verb' => 'GET',
-            'defaults' => array('folder' => 'root')],
+            'defaults' => array('folder' => 'root')
+        ],
+        [
+            'name' => 'file_checksum_api#get_checksum_statistic_status',
+            'url' => '/api/statistic/status',
+            'verb' => 'GET'
+        ],
     ]
 ];
