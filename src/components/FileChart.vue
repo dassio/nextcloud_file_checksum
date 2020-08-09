@@ -1,13 +1,18 @@
 <template>
   <div id="filechart">
-    <button v-on:click="getFileMetaData($refs.fileChartCanvas)">Getting Files Meta Data</button>
-    <br />
-    <div id="fileList" v-if="fileListVisibility">{{ fileListJson }}</div>
+    <!-- getting the file list -->
+    <button v-on:click="startScanning">Getting Files Meta Data</button>
+    <!-- <h3> scannedFilesNum : {{scannedFilesNum}} </h3> -->
+    <MyAnimatedNumber :value="scannedFilesNum" :duration="8000" v-if="scannedFilesNum > 0" />
+  
     <div id="fetching-file-spinner" v-if="showSpinner">
       <Spinner size="medium" />
-    </div>
-    <!-- draw file statistic -->
-    <canvas ref="fileChartCanvas" width="400" height="400"></canvas>
+    </div><br/>
+
+    <!-- view files -->
+    <div id="fileList" v-if="fileListVisibility">{{ fileListJson }}</div><br/>
+
+
   </div>
 </template>
 
@@ -15,7 +20,8 @@
 import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
 import Spinner from "vue-simple-spinner";
-import Chart from "chart.js";
+import MyAnimatedNumber from "./AnimatedNumber.vue";
+
 
 export default {
   name: "FileChart",
@@ -25,69 +31,58 @@ export default {
       fileListJson: null,
       fileListVisibility: false,
       showSpinner: false,
+      scannedFilesNum: 0,
     };
   },
 
   methods: {
     // get file list
-    getFileMetaData: function (fileChartCanvas) {
+    startScanning: function () {
       this.showSpinner = true;
       this.fileListVisibility = false;
+      axios
+        .get(generateUrl("apps/filechecksum/api/statistic/startscanning"))
+        .then((response) => {
+          this.fileListJson = response;
+          this.fileListVisibility = true;
+          this.showSpinner = false;
+        });
+      setInterval(this.checkingScanningProgress, 10000);
+    },
+    //checking scanning progress
+    checkingScanningProgress: function () {
+      axios
+        .get(generateUrl("apps/filechecksum/api/statistic/status"))
+        .then((response) => {
+          var progress_response = response.data[0];
+          this.fileListJson = progress_response;
+          this.fileListVisibility = true;
+          this.showSpinner = false;
+          if (progress_response.progress == "not_finished") {
+            this.scannedFilesNum = progress_response.fileNum;
+          } else if(progress_response.progress == "finished") {
+            this.scannedFilesNum = progress_response.fileNum;
+            clearInterval(this.checkingScanningProgress);
+            this.getFileStatistic();
+          } else {
+            this.scannedFilesNum = progress_response.fileNum;
+          }
+        });
+    },
+    //get final result
+    getFileStatistic: function () {
       axios
         .get(generateUrl("apps/filechecksum/api/statistic"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
           this.showSpinner = false;
-          this.drawFileChart(fileChartCanvas);
         });
-    },
-    // File Chart show file meta data percentage
-    drawFileChart: function (fileChartCanvas) {
-      new Chart(fileChartCanvas, {
-        type: "bar",
-        data: {
-          labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-          datasets: [
-            {
-              label: "# of Votes",
-              data: [12, 19, 3, 5, 2, 3],
-              backgroundColor: [
-                "rgba(255, 99, 132, 0.2)",
-                "rgba(54, 162, 235, 0.2)",
-                "rgba(255, 206, 86, 0.2)",
-                "rgba(75, 192, 192, 0.2)",
-                "rgba(153, 102, 255, 0.2)",
-                "rgba(255, 159, 64, 0.2)",
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(75, 192, 192, 1)",
-                "rgba(153, 102, 255, 1)",
-                "rgba(255, 159, 64, 1)",
-              ],
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                },
-              },
-            ],
-          },
-        },
-      });
     },
   },
   components: {
     Spinner,
+    MyAnimatedNumber
   },
 };
 </script>

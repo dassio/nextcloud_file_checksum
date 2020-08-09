@@ -1,7 +1,7 @@
 <template>
-  <div id="filechecksum">
+  <div id="filechecksum" class="section">
+  <h2>File Checksum</h2>
   <FileChart />
-  
   </div>
 </template>
 

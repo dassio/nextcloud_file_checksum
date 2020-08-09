@@ -21,6 +21,7 @@ module.exports = {
                 },
             }, ]
         },
+        devtool: 'source-map'
     },
     outputDir: "./js",
     // disable hashes in filenames

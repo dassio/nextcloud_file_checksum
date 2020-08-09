@@ -32,9 +32,12 @@ class FileChecksumApiController extends ApiController
 		$this->userId = $userId;
 		$this->jobList = $jobList;
 		$this->session = $session;
-		$this->session['file_count_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_filechecksum_count');
-		$this->session['json_result_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_filechecksum_result');
-
+		if (!$this->session->exists('json_result_temp_file')){
+			$this->session['json_result_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_json_result_temp_file');
+		}
+		if (!$this->session->exists('file_count_temp_file')){
+			$this->session['file_count_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_file_count_temp_file');
+		}
 	}
 
 	/**
@@ -43,20 +46,62 @@ class FileChecksumApiController extends ApiController
 	 *
 	 * getting all files checksum information
 	 */
-	public function  getChecksumStatistic(string $folder): JSONResponse
+	public function  startScanning(string $folder): JSONResponse
 	{
-		$this->jobList->add(FileList::class, 
+		if (!$this->checkFinshedLastRun){
+			$this->jobList->add(FileList::class, 
 							['uid' => $this->userId,
 							'folder'=>$folder,
 							'file_count_temp_file'=>$this->session['file_count_temp_file'],
 							'json_result_temp_file'=>$this->session['json_result_temp_file']
 							]);
-		// putenv("SHELL=/bin/bash");
-		// print `echo /usr/bin/php -q /var/www/html/cron.php | at now 2>&1`;
-		exec('/usr/local/bin/php -q /var/www/html/cron.php  > /dev/null 2>&1 &');
+			exec('/usr/local/bin/php -q /var/www/html/cron.php  > /dev/null 2>&1 &');
+		}
 
 		$result[] = ["status"=>"submit_ok"];
 		return new JSONResponse($result, Http::STATUS_OK);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * Check scanning progress
+	 */
+	public function getChecksumStatisticStatus(): JSONResponse{
+		$progressData = file_get_contents($this->session['file_count_temp_file']);
+		list($fileNum,$progress) = ( explode(':', $progressData) );
+		$result[] = ["fileNum"=>$fileNum,"progress"=>$progress];
+		return new JSONResponse($result, Http::STATUS_OK);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * get final file list
+	 */
+	public function getChecksumStatistic(): JSONResponse{
+		$progressData = file_get_contents($this->session['file_count_temp_file']);
+		list($fileNum,$progress) = ( explode(':', $progressData) );
+		if($progress == "finished") {
+			$jsonData = file_get_contents($this->session['json_result_temp_file']);
+			$json = json_decode($jsonData, true);
+			unset($json["scanning_finished"]);
+			return new JSONResponse($json, Http::STATUS_OK);
+		} else {
+			$result[] = ["error"=>"sanning not finished"];
+			return new JSONResponse($result, Http::STATUS_OK);
+		}
+	}
+
+	/**
+	 * Check if last run finished scanning
+	 */
+	private function checkFinshedLastRun(): bool {
+		$jsonData = file_get_contents($this->session['json_result_temp_file']);
+		$json = json_decode($jsonData, true);
+		if (array_key_exists('scanning_finished',$json)){
+			return true;
+		}else{
+			return false;
+		}
 	}
 }
 ?>

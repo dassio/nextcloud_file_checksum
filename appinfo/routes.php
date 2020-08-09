@@ -12,14 +12,19 @@ return [
     'routes' => [
         ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
         [
-            'name' => 'file_checksum_api#get_checksum_statistic',
-            'url' => '/api/statistic{folder}',
+            'name' => 'file_checksum_api#start_scanning',
+            'url' => '/api/statistic/startscanning{folder}',
             'verb' => 'GET',
             'defaults' => array('folder' => 'root')
         ],
         [
             'name' => 'file_checksum_api#get_checksum_statistic_status',
             'url' => '/api/statistic/status',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'file_checksum_api#get_checksum_statistic',
+            'url' => '/api/statistic',
             'verb' => 'GET'
         ],
     ]

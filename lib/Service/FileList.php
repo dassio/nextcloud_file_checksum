@@ -16,25 +16,29 @@ class FileList extends QueuedJob {
 	private $userId;
 	/** @var IRootFolder */
     private $rootFolder;
-    /** @var int */
-    private $file_count;
     /** @var string */
-    private $file_count_temp_file;
-    /** @var string */
-    private $json_result_temp_file;
+	private $json_result_temp_file;
+	/** @var string */
+	private $file_count_temp_file;
+	/** @var int */
+	private $file_count;
    
 
 
     public function __construct(ITimeFactory $time, IRootFolder $rootFolder) {
         parent::__construct($time);
-        $this->rootFolder = $rootFolder;
+		$this->rootFolder = $rootFolder;
+		$this->file_count = 0;
     }
 
+	/**
+	 * Main Funtion 
+	 */
     protected function run($arguments) {
         $folder = $arguments['folder'];
         $this->userId = $arguments['uid'];
-        $this->file_count_temp_file = $arguments['file_count_temp_file'];
-        $this->json_result_temp_file = $arguments['json_result_temp_file'];
+		$this->json_result_temp_file = $arguments['json_result_temp_file'];
+		$this->file_count_temp_file = $arguments['file_count_temp_file'];
 
 
         if ($folder == 'root') {
@@ -44,11 +48,11 @@ class FileList extends QueuedJob {
 		}
 
         $data = $this->scanCurrentFolderFiles($userFolder);
-        file_put_contents($this->file_count_temp_file,$this->file_count . ":done");
-        $result = $this->formatData($data);
-        file_put_contents($this->json_result_temp_file,json_encode($result));
-    }
-
+		$result = $this->formatData($data);
+		$result[] = ["scanning_finished"=>"YES"];
+		file_put_contents($this->json_result_temp_file,json_encode($result));
+		file_put_contents($this->file_count_temp_file,$this->file_count . ":finished");
+	}
 
     /**
 	 * @param string $folder
@@ -62,22 +66,13 @@ class FileList extends QueuedJob {
 				foreach ( $this->scanCurrentFolderFiles($node) as $subnode) {
                     if ($subnode instanceof File){
                         yield $subnode;
-                        $this->file_count = $this->file_count + 1;
                     }
 				}
 			} elseif ($node instanceof File) {
                 yield $node;
-                $this->file_count = $this->file_count + 1;
 			}
 		}
     }
-    
-    private function logScannedFiles(){
-        if($this->file_count % 100 == 0){
-            file_put_contents($this->file_count_temp_file,$this->file_count . ":not_done");
-        }
-    }
-
 
 	private function formatData(iterable $nodes): array
 	{
@@ -86,6 +81,10 @@ class FileList extends QueuedJob {
 		$result = [];
 		/** @var Node $node */
 		foreach ($nodes as $node) {
+			$this->file_count++;
+			if($this->file_count % 50 == 0){
+				file_put_contents($this->file_count_temp_file,$this->file_count . ":not_finished");
+			}
 			$isRoot = $node === $userFolder;
 			$external = $node->getMountPoint() instanceof ExternalMountPoint;
 			$path = $userFolder->getRelativePath($node->getPath());
