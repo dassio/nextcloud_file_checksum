@@ -1,7 +1,7 @@
 <template>
   <div id="filechart">
     <!-- getting the file list -->
-    <button v-on:click="startScanning">Getting Files Meta Data</button>
+    <button v-on:click="startScanning">{{ buttonFunction }}</button>
     <!-- <h3> scannedFilesNum : {{scannedFilesNum}} </h3> -->
     <MyAnimatedNumber :value="scannedFilesNum" :duration="8000" v-if="scannedFilesNum > 0" />
   
@@ -32,6 +32,8 @@ export default {
       fileListVisibility: false,
       showSpinner: false,
       scannedFilesNum: 0,
+      intervalId:null,
+      buttonFunction: "Scanning for File Checksum"
     };
   },
 
@@ -47,7 +49,8 @@ export default {
           this.fileListVisibility = true;
           this.showSpinner = false;
         });
-      setInterval(this.checkingScanningProgress, 10000);
+      this.buttonFunction = "Scanning";
+      this.intervalId = setInterval(this.checkingScanningProgress, 10000);
     },
     //checking scanning progress
     checkingScanningProgress: function () {
@@ -57,12 +60,12 @@ export default {
           var progress_response = response.data[0];
           this.fileListJson = progress_response;
           this.fileListVisibility = true;
-          this.showSpinner = false;
           if (progress_response.progress == "not_finished") {
             this.scannedFilesNum = progress_response.fileNum;
           } else if(progress_response.progress == "finished") {
             this.scannedFilesNum = progress_response.fileNum;
-            clearInterval(this.checkingScanningProgress);
+            clearInterval(this.intervalId);
+            this.showSpinner = false;
             this.getFileStatistic();
           } else {
             this.scannedFilesNum = progress_response.fileNum;
