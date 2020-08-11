@@ -1,13 +1,11 @@
 <template>
   <div id="filechart">
     <!-- getting the file list -->
-    <button v-on:click="startScanning">{{ buttonFunction }}</button>
-    <!-- <h3> scannedFilesNum : {{scannedFilesNum}} </h3> -->
-    <MyAnimatedNumber :value="scannedFilesNum" :duration="8000" v-if="scannedFilesNum > 0" />
-  
-    <div id="fetching-file-spinner" v-if="showSpinner">
-      <Spinner size="medium" />
-    </div><br/>
+    <div id="scanning">
+      <button v-on:click="startScanning">{{ buttonFunction }}</button>
+      <MyAnimatedNumber :value="scannedFilesNum" :duration="10000" v-if="scannedFilesNum > 0" />
+      <hr v-if="showScanning" >
+    </div>
 
     <!-- view files -->
     <div id="fileList" v-if="fileListVisibility">{{ fileListJson }}</div><br/>
@@ -19,7 +17,6 @@
 <script>
 import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
-import Spinner from "vue-simple-spinner";
 import MyAnimatedNumber from "./AnimatedNumber.vue";
 
 
@@ -30,29 +27,36 @@ export default {
     return {
       fileListJson: null,
       fileListVisibility: false,
-      showSpinner: false,
       scannedFilesNum: 0,
       intervalId:null,
-      buttonFunction: "Scanning for File Checksum"
+      buttonFunction: "Start Scanning Files",
+      showScanning: false,
     };
   },
 
   methods: {
-    // get file list
+    /*
+    ==========================================================
+    Function : start scanning 
+    ==========================================================
+    */
     startScanning: function () {
-      this.showSpinner = true;
       this.fileListVisibility = false;
       axios
         .get(generateUrl("apps/filechecksum/api/statistic/startscanning"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
-          this.showSpinner = false;
         });
-      this.buttonFunction = "Scanning";
+      this.buttonFunction = "Cancle Scanning";
+      this.showScanning = true;
       this.intervalId = setInterval(this.checkingScanningProgress, 10000);
     },
-    //checking scanning progress
+    /*
+    ==========================================================
+    Function : checking scanning progress
+    ==========================================================
+    */
     checkingScanningProgress: function () {
       axios
         .get(generateUrl("apps/filechecksum/api/statistic/status"))
@@ -63,32 +67,76 @@ export default {
           if (progress_response.progress == "not_finished") {
             this.scannedFilesNum = progress_response.fileNum;
           } else if(progress_response.progress == "finished") {
+            //update ui
             this.scannedFilesNum = progress_response.fileNum;
-            clearInterval(this.intervalId);
-            this.showSpinner = false;
+            this.showScanning = false;
+            this.buttonFunction = "Rescan";
+            // get final reuslt 
             this.getFileStatistic();
+            clearInterval(this.intervalId);
           } else {
             this.scannedFilesNum = progress_response.fileNum;
           }
         });
     },
-    //get final result
+    /*
+    ==========================================================
+    Function : get final result
+    ==========================================================
+    */
     getFileStatistic: function () {
       axios
         .get(generateUrl("apps/filechecksum/api/statistic"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
-          this.showSpinner = false;
         });
     },
   },
+
   components: {
-    Spinner,
     MyAnimatedNumber
   },
 };
 </script>
 
-<style>
+<style lang="scss">
+
+$scanner_shadow: #666;
+$scanner_light: red;
+$scanner_background: #333;
+
+#scanning hr {
+    position: relative;
+    margin: 10px 10px 10px 4px;
+    font-size: 0;
+    height: 4px;
+    border: 0;
+    width:20%;
+    border-radius: 25px;
+  
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 4px;
+      background-color: $scanner_background;
+      background-image: linear-gradient(90deg, $scanner_background, $scanner_light), linear-gradient(90deg, $scanner_light, $scanner_background);
+      background-size: 15% 100%;
+      background-position: -30% 0, 130% 0;
+      background-repeat: no-repeat;
+      /*box-shadow: 1px 1px 1px $scanner_shadow;*/
+      animation: scan 3s infinite;
+    }
+  .scan {
+    
+  }
+}
+
+@keyframes scan {
+    0% {background-position:-20% 0, 120% 0;}
+    50% {background-position:120% 0, 120% 0;}
+    100% {background-position:120% 0, -20% 0;}
+}
 </style>

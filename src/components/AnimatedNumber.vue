@@ -15,7 +15,7 @@ export default {
   props: ['value','duration'],
   methods: {
     formatToPrice(value) {
-      return `<h3> ${Number(value).toFixed(0)}</h1>`;
+      return `${Number(value).toFixed(0)}`;
     }
   },
   watch:{
