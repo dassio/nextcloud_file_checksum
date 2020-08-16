@@ -17,11 +17,6 @@ export default {
     formatToPrice(value) {
       return `${Number(value).toFixed(0)}`;
     }
-  },
-  watch:{
-    'value':function(){
-      console.log(this.value)
-    }
   }
 };
 </script>

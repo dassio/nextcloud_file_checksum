@@ -18,6 +18,17 @@ return [
             'defaults' => array('folder' => 'root')
         ],
         [
+            'name' => 'file_checksum_api#restart_scanning',
+            'url' => '/api/statistic/restartscanning{folder}',
+            'verb' => 'GET',
+            'defaults' => array('folder' => 'root')
+        ],
+        [
+            'name' => 'file_checksum_api#cancel_scanning',
+            'url' => '/api/statistic/cancelscanning',
+            'verb' => 'GET',
+        ],
+        [
             'name' => 'file_checksum_api#get_checksum_statistic_status',
             'url' => '/api/statistic/status',
             'verb' => 'GET'

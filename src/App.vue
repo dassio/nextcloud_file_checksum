@@ -6,12 +6,14 @@
 </template>
 
 <script>
-import FileChart from './components/FileChart.vue'
+import Scanning from './components/Scanning.vue'
+import ChecksumGeneration from './components/ChecksumGeneration.vue'
 
 export default {
   name: 'App',
   components: {
-    FileChart,
+    Scanning,
+    ChecksumGeneration
   }
 }
 </script>

@@ -1,6 +1,8 @@
 <?php
 namespace OCA\FileChecksum\Service;
 
+use \Exception;
+
 use OCP\AppFramework\Utility\ITimeFactory;
 use \OCP\BackgroundJob\QueuedJob;
 
@@ -35,19 +37,25 @@ class FileList extends QueuedJob {
 	 * Main Funtion 
 	 */
     protected function run($arguments) {
-        $folder = $arguments['folder'];
-        $this->userId = $arguments['uid'];
-		$this->json_result_temp_file = $arguments['json_result_temp_file'];
-		$this->file_count_temp_file = $arguments['file_count_temp_file'];
+		try{
+			$folder = $arguments['folder'];
+			$this->userId = $arguments['uid'];
+			$this->json_result_temp_file = $arguments['json_result_temp_file'];
+			$this->file_count_temp_file = $arguments['file_count_temp_file'];
+	
+			echo "start scanning for user" . "\n";
+	
+			if ($folder == 'root') {
+				$userFolder = $this->rootFolder->getUserFolder($this->userId);
+			} else {
+				$userFolder = $this->rootFolder->getPath($folder);
+			}
 
-
-        if ($folder == 'root') {
-			$userFolder = $this->rootFolder->getUserFolder($this->userId);
-		} else {
-			$userFolder = $this->rootFolder->getPath($folder);
+			$data = $this->scanCurrentFolderFiles($userFolder);
+		} catch (Exception $e) {
+			echo 'Caught exception: ',  $e->getMessage(), "\n";
 		}
-
-        $data = $this->scanCurrentFolderFiles($userFolder);
+        
 		$result = $this->formatData($data);
 		$result[] = ["scanning_finished"=>"YES"];
 		file_put_contents($this->json_result_temp_file,json_encode($result));
@@ -63,6 +71,8 @@ class FileList extends QueuedJob {
 
 		foreach ($nodes as $node) {
 			if ($node instanceof Folder) {
+				echo "start scanning folder : " . $node->getPath() . " : " . $this->file_count . "\n";
+				file_put_contents($this->file_count_temp_file,$this->file_count . ":not_finished");
 				foreach ( $this->scanCurrentFolderFiles($node) as $subnode) {
                     if ($subnode instanceof File){
                         yield $subnode;
@@ -82,9 +92,6 @@ class FileList extends QueuedJob {
 		/** @var Node $node */
 		foreach ($nodes as $node) {
 			$this->file_count++;
-			if($this->file_count % 50 == 0){
-				file_put_contents($this->file_count_temp_file,$this->file_count . ":not_finished");
-			}
 			$isRoot = $node === $userFolder;
 			$external = $node->getMountPoint() instanceof ExternalMountPoint;
 			$path = $userFolder->getRelativePath($node->getPath());

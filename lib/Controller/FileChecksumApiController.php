@@ -38,11 +38,15 @@ class FileChecksumApiController extends ApiController
 		if (!$this->session->exists('file_count_temp_file')){
 			$this->session['file_count_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_file_count_temp_file');
 		}
+		if (!$this->session->exists('proccesss_output_temp_file')){
+			$this->session['proccesss_output_temp_file'] = tempnam(sys_get_temp_dir(), 'nextcloud_proccesss_output_temp_file-'.$this->userId);
+		}
 	}
 
 	/**
 	 * @NoAdminRequired
 	 * @param string $folder
+	 * @UseSession
 	 *
 	 * getting all files checksum information
 	 */
@@ -55,9 +59,42 @@ class FileChecksumApiController extends ApiController
 							'file_count_temp_file'=>$this->session['file_count_temp_file'],
 							'json_result_temp_file'=>$this->session['json_result_temp_file']
 							]);
-			exec('/usr/local/bin/php -q /var/www/html/cron.php  > /dev/null 2>&1 &');
+			$command = 'nohup /usr/local/bin/php -q /var/www/html/apps/filechecksum/lib/Command/cron.php  > '. $this->session['proccesss_output_temp_file'] . ' 2>&1 & echo $!;';		
+			$pid = exec($command,$output);
+			$this->session->set("pid",(int)$output[0]);	
 		}
 
+		$result[] = ["status"=>"submit_ok"];
+		return new JSONResponse($result, Http::STATUS_OK);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @param string $folder
+	 * @UseSession
+	 * 
+	 * getting all files checksum information
+	 */
+	public function restartScanning(string $folder): JSONResponse{
+
+		$this->emptyFile($this->session['json_result_temp_file']);
+		$this->emptyFile($this->session['file_count_temp_file']);
+
+		return $this->startScanning($folder);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @param string $folder
+	 * 
+	 * getting all files checksum information
+	 */
+	public function cancelScanning(){
+		exec("kill -9 ".$this->session['pid']);
+
+		$this->emptyFile($this->session['json_result_temp_file']);
+		$this->emptyFile($this->session['file_count_temp_file']);
+		
 		$result[] = ["status"=>"submit_ok"];
 		return new JSONResponse($result, Http::STATUS_OK);
 	}
@@ -101,6 +138,14 @@ class FileChecksumApiController extends ApiController
 			return true;
 		}else{
 			return false;
+		}
+	}
+
+	private function emptyFile(string $fileName){
+		$f = @fopen("filename.txt", "r+");
+		if ($f !== false) {
+			ftruncate($f, 0);
+			fclose($f);
 		}
 	}
 }

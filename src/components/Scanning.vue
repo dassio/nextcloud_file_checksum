@@ -1,10 +1,12 @@
 <template>
-  <div id="filechart">
+  <div id="scan">
     <!-- getting the file list -->
     <div id="scanning">
-      <button v-on:click="startScanning">{{ buttonFunction }}</button>
-      <MyAnimatedNumber :value="scannedFilesNum" :duration="10000" v-if="scannedFilesNum > 0" />
-      <hr v-if="showScanning" >
+      <button v-on:click="ScanningFunction" >{{ buttonFunctionType }}</button>
+
+      <MyAnimatedNumber :value="scannedFilesNum" :duration="statusCheckInterval" v-if="scannedFilesNum > 0" />
+
+      <hr v-if="buttonFunction=='cancel'" >
     </div>
 
     <!-- view files -->
@@ -18,10 +20,11 @@
 import axios from "@nextcloud/axios";
 import { generateUrl } from "@nextcloud/router";
 import MyAnimatedNumber from "./AnimatedNumber.vue";
+import { bus } from '../main'
 
 
 export default {
-  name: "FileChart",
+  name: "Scanning",
 
   data: function () {
     return {
@@ -29,8 +32,11 @@ export default {
       fileListVisibility: false,
       scannedFilesNum: 0,
       intervalId:null,
-      buttonFunction: "Start Scanning Files",
-      showScanning: false,
+      buttonFunctionStart: "Start Scanning",
+      buttonFunctionCancel: "Cancel Scanning",
+      buttonFunctionRescan: "Rescanning Files",
+      buttonFunctionType: "Start Scanning",
+      statusCheckInterval:10000,
     };
   },
 
@@ -40,17 +46,49 @@ export default {
     Function : start scanning 
     ==========================================================
     */
+    ScanningFunction : function(){
+      switch(this.buttonFunctionType){
+          case this.buttonFunctionStart:
+            this.startScanning();
+            break
+          case this.buttonFunctionCancel:
+            this.cancelScanning();
+            break
+          case this.buttonFunctionRescan:
+            this.restartScanning();
+      }
+    },
     startScanning: function () {
-      this.fileListVisibility = false;
+      this.buttonFunctionType = this.buttonFunctionCancel;
       axios
         .get(generateUrl("apps/filechecksum/api/statistic/startscanning"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
         });
-      this.buttonFunction = "Cancle Scanning";
-      this.showScanning = true;
-      this.intervalId = setInterval(this.checkingScanningProgress, 10000);
+      this.intervalId = setInterval(this.checkingScanningProgress, this.statusCheckInterval);
+    },
+    cancelScanning: function() {
+      this.buttonFunctionType = this.buttonFunctionStart;
+      axios
+        .get(generateUrl("apps/filechecksum/api/statistic/cancelscanning"))
+        .then((response) => {
+          this.fileListJson = response;
+          this.fileListVisibility = false;
+        });
+      this.scannedFilesNum = 0;
+      this.buttonFunction = "start";
+    },
+    restartScanning: function(){
+      this.scannedFilesNum = 0;
+      this.buttonFunctionType = this.buttonFunctionCancel;
+      axios
+        .get(generateUrl("apps/filechecksum/api/statistic/restartscanning"))
+        .then((response) => {
+          this.fileListJson = response;
+          this.fileListVisibility = true;
+        });
+      this.intervalId = setInterval(this.checkingScanningProgress, this.statusCheckInterval);
     },
     /*
     ==========================================================
@@ -69,8 +107,8 @@ export default {
           } else if(progress_response.progress == "finished") {
             //update ui
             this.scannedFilesNum = progress_response.fileNum;
-            this.showScanning = false;
-            this.buttonFunction = "Rescan";
+            setTimeout( () =>  this.buttonFunctionType = this.buttonFunctionRescan, this.statusCheckInterval+2000);
+
             // get final reuslt 
             this.getFileStatistic();
             clearInterval(this.intervalId);
@@ -91,6 +129,7 @@ export default {
           this.fileListJson = response;
           this.fileListVisibility = true;
         });
+        bus.$emit("sanningFinished",this.fileListJson);
     },
   },
 
