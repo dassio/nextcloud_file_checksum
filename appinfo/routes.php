@@ -9,34 +9,40 @@
  * it's instantiated in there
  */
 return [
-    'routes' => [
-        ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
-        [
-            'name' => 'file_checksum_api#start_scanning',
-            'url' => '/api/statistic/startscanning{folder}',
-            'verb' => 'GET',
-            'defaults' => array('folder' => 'root')
-        ],
-        [
-            'name' => 'file_checksum_api#restart_scanning',
-            'url' => '/api/statistic/restartscanning{folder}',
-            'verb' => 'GET',
-            'defaults' => array('folder' => 'root')
-        ],
-        [
-            'name' => 'file_checksum_api#cancel_scanning',
-            'url' => '/api/statistic/cancelscanning',
-            'verb' => 'GET',
-        ],
-        [
-            'name' => 'file_checksum_api#get_checksum_statistic_status',
-            'url' => '/api/statistic/status',
-            'verb' => 'GET'
-        ],
-        [
-            'name' => 'file_checksum_api#get_checksum_statistic',
-            'url' => '/api/statistic',
-            'verb' => 'GET'
-        ],
+  'routes' => [
+    ['name' => 'home#index', 'url' => '/', 'verb' => 'GET'],
+    [
+      'name' => 'file_checksum_api#start_scanning',
+      'url' => '/api/statistic/startscanning{folder}',
+      'verb' => 'GET',
+      'defaults' => array('folder' => 'root')
+    ],
+    [
+      'name' => 'file_checksum_api#restart_scanning',
+      'url' => '/api/statistic/restartscanning{folder}',
+      'verb' => 'GET',
+      'defaults' => array('folder' => 'root')
+    ],
+    [
+      'name' => 'file_checksum_api#cancel_scanning',
+      'url' => '/api/statistic/cancelscanning',
+      'verb' => 'GET',
+    ],
+    [
+      'name' => 'file_checksum_api#get_checksum_statistic_status',
+      'url' => '/api/statistic/status',
+      'verb' => 'GET'
+    ],
+    [
+      'name' => 'file_checksum_api#get_checksum_statistic',
+      'url' => '/api/statistic',
+      'verb' => 'GET'
+    ],
+    [
+      'name' => 'file_checksum_api#generate_checksum',
+      'url' => '/api/generatechecksum',
+      'verb' => 'GET'
+
     ]
+  ]
 ];

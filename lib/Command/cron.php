@@ -105,9 +105,7 @@ try {
 		$executedJobs = [];
 		while ($job = $jobList->getNext()) {
 			echo "getting job" . get_class($job) . "\n";
-			if (get_class($job) != "OCA\FileChecksum\Service\FileList") {
-				continue;
-			} else {
+			if (strpos(get_class($job),"OCA\FileChecksum\Service") !== false) {
 				echo "executing job" . get_class($job) . "\n";
 				if (isset($executedJobs[$job->getId()])) {
 					$jobList->unlockJob($job);

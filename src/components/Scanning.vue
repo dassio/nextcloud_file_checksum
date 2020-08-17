@@ -2,17 +2,14 @@
   <div id="scan">
     <!-- getting the file list -->
     <div id="scanning">
-      <button v-on:click="ScanningFunction" >{{ buttonFunctionType }}</button>
-
-      <MyAnimatedNumber :value="scannedFilesNum" :duration="statusCheckInterval" v-if="scannedFilesNum > 0" />
-
-      <hr v-if="buttonFunction=='cancel'" >
+      <b-button variant="primary" v-on:click="ScanningFunction" >{{ buttonFunctionType }}</b-button>
+      <b-button variant="info" disabled v-if="buttonFunctionType==buttonFunctionCancel" >
+        <div class="spinner-border spinner-border-sm" role="status" >
+          <span class="sr-only">Scanning Files....</span>
+        </div>
+        <MyAnimatedNumber :value="scannedFilesNum" :duration="statusCheckInterval" v-if="scannedFilesNum > 0" />
+      </b-button>
     </div>
-
-    <!-- view files -->
-    <div id="fileList" v-if="fileListVisibility">{{ fileListJson }}</div><br/>
-
-
   </div>
 </template>
 
@@ -29,7 +26,6 @@ export default {
   data: function () {
     return {
       fileListJson: null,
-      fileListVisibility: false,
       scannedFilesNum: 0,
       intervalId:null,
       buttonFunctionStart: "Start Scanning",
@@ -40,22 +36,40 @@ export default {
     };
   },
 
+  mounted: function(){
+    axios
+      .get(generateUrl("apps/filechecksum/api/statistic/status"))
+      .then((response) => {
+        var progress_response = response.data[0];
+        this.fileListJson = progress_response;
+        if(progress_response.progress == "finished") {
+          //update ui
+          this.scannedFilesNum = progress_response.fileNum;
+          this.buttonFunctionType = this.buttonFunctionRescan;
+
+          // get final reuslt
+          this.getFileStatistic();
+        }
+      });
+
+  },
+
   methods: {
     /*
     ==========================================================
-    Function : start scanning 
+    Function : start scanning
     ==========================================================
-    */
+     */
     ScanningFunction : function(){
       switch(this.buttonFunctionType){
-          case this.buttonFunctionStart:
-            this.startScanning();
-            break
-          case this.buttonFunctionCancel:
-            this.cancelScanning();
-            break
-          case this.buttonFunctionRescan:
-            this.restartScanning();
+        case this.buttonFunctionStart:
+          this.startScanning();
+          break
+        case this.buttonFunctionCancel:
+          this.cancelScanning();
+          break
+        case this.buttonFunctionRescan:
+          this.restartScanning();
       }
     },
     startScanning: function () {
@@ -64,7 +78,6 @@ export default {
         .get(generateUrl("apps/filechecksum/api/statistic/startscanning"))
         .then((response) => {
           this.fileListJson = response;
-          this.fileListVisibility = true;
         });
       this.intervalId = setInterval(this.checkingScanningProgress, this.statusCheckInterval);
     },
@@ -78,6 +91,7 @@ export default {
         });
       this.scannedFilesNum = 0;
       this.buttonFunction = "start";
+      clearInterval(this.intervalId);
     },
     restartScanning: function(){
       this.scannedFilesNum = 0;
@@ -94,7 +108,7 @@ export default {
     ==========================================================
     Function : checking scanning progress
     ==========================================================
-    */
+     */
     checkingScanningProgress: function () {
       axios
         .get(generateUrl("apps/filechecksum/api/statistic/status"))
@@ -109,7 +123,7 @@ export default {
             this.scannedFilesNum = progress_response.fileNum;
             setTimeout( () =>  this.buttonFunctionType = this.buttonFunctionRescan, this.statusCheckInterval+2000);
 
-            // get final reuslt 
+            // get final reuslt
             this.getFileStatistic();
             clearInterval(this.intervalId);
           } else {
@@ -121,15 +135,15 @@ export default {
     ==========================================================
     Function : get final result
     ==========================================================
-    */
+     */
     getFileStatistic: function () {
       axios
         .get(generateUrl("apps/filechecksum/api/statistic"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
+          bus.$emit("sanningFinished",this.fileListJson);
         });
-        bus.$emit("sanningFinished",this.fileListJson);
     },
   },
 
@@ -139,43 +153,9 @@ export default {
 };
 </script>
 
-<style lang="scss">
-
-$scanner_shadow: #666;
-$scanner_light: red;
-$scanner_background: #333;
-
-#scanning hr {
-    position: relative;
-    margin: 10px 10px 10px 4px;
-    font-size: 0;
-    height: 4px;
-    border: 0;
-    width:20%;
-    border-radius: 25px;
-  
-    &:after {
-      content: '';
-      position: absolute;
-      top: 0;
-      width: 100%;
-      height: 4px;
-      background-color: $scanner_background;
-      background-image: linear-gradient(90deg, $scanner_background, $scanner_light), linear-gradient(90deg, $scanner_light, $scanner_background);
-      background-size: 15% 100%;
-      background-position: -30% 0, 130% 0;
-      background-repeat: no-repeat;
-      /*box-shadow: 1px 1px 1px $scanner_shadow;*/
-      animation: scan 3s infinite;
-    }
-  .scan {
-    
-  }
-}
-
-@keyframes scan {
-    0% {background-position:-20% 0, 120% 0;}
-    50% {background-position:120% 0, 120% 0;}
-    100% {background-position:120% 0, -20% 0;}
+<style lang="scss" scoped>
+::v-deep {
+  @import 'node_modules/bootstrap/scss/bootstrap';
+  @import 'node_modules/bootstrap-vue/src/index.scss';
 }
 </style>

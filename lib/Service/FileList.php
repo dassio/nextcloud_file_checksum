@@ -10,7 +10,7 @@ use OCA\Files_External\Config\ExternalMountPoint;
 use OCP\Files\IRootFolder;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\FIles\Node;
+use OCP\Files\Node;
 
 class FileList extends QueuedJob {
 
@@ -95,6 +95,7 @@ class FileList extends QueuedJob {
 			$isRoot = $node === $userFolder;
 			$external = $node->getMountPoint() instanceof ExternalMountPoint;
 			$path = $userFolder->getRelativePath($node->getPath());
+      $hasChecksum = $node->getChecksum() != "";
 
 			$result[] = [
 				'basename' => $isRoot ? '' : $node->getName(),
@@ -102,7 +103,8 @@ class FileList extends QueuedJob {
 				'filename' => $path,
 				'size' => $node->getSize(),
 				'type' => $node->getType(),
-				'external' => $external
+        'external' => $external,
+        'hasChecksum' => $hasChecksum,
 			];
 		}
 		return $result;
