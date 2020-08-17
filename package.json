@@ -1,5 +1,5 @@
 {
-  "name": "filechecksum",
+  "name": "files_checksum",
   "version": "0.1.0",
   "private": true,
   "scripts": {
