@@ -36,23 +36,23 @@ export default {
     };
   },
 
-  mounted: function(){
-    axios
-      .get(generateUrl("apps/filechecksum/api/statistic/status"))
-      .then((response) => {
-        var progress_response = response.data[0];
-        this.fileListJson = progress_response;
-        if(progress_response.progress == "finished") {
-          //update ui
-          this.scannedFilesNum = progress_response.fileNum;
-          this.buttonFunctionType = this.buttonFunctionRescan;
-
-          // get final reuslt
-          this.getFileStatistic();
-        }
-      });
-
-  },
+//  mounted: function(){
+//    axios
+//      .get(generateUrl("apps/files_checksum/api/statistic/status"))
+//      .then((response) => {
+//        var progress_response = response.data[0];
+//        this.fileListJson = progress_response;
+//        if(progress_response.progress == "finished") {
+//          //update ui
+//          this.scannedFilesNum = progress_response.fileNum;
+//          this.buttonFunctionType = this.buttonFunctionRescan;
+//
+//          // get final reuslt
+//          this.getFileStatistic();
+//        }
+//      });
+//
+//  },
 
   methods: {
     /*
@@ -75,7 +75,7 @@ export default {
     startScanning: function () {
       this.buttonFunctionType = this.buttonFunctionCancel;
       axios
-        .get(generateUrl("apps/filechecksum/api/statistic/startscanning"))
+        .get(generateUrl("apps/files_checksum/api/statistic/startscanning"))
         .then((response) => {
           this.fileListJson = response;
         });
@@ -84,7 +84,7 @@ export default {
     cancelScanning: function() {
       this.buttonFunctionType = this.buttonFunctionStart;
       axios
-        .get(generateUrl("apps/filechecksum/api/statistic/cancelscanning"))
+        .get(generateUrl("apps/files_checksum/api/statistic/cancelscanning"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = false;
@@ -97,7 +97,7 @@ export default {
       this.scannedFilesNum = 0;
       this.buttonFunctionType = this.buttonFunctionCancel;
       axios
-        .get(generateUrl("apps/filechecksum/api/statistic/restartscanning"))
+        .get(generateUrl("apps/files_checksum/api/statistic/restartscanning"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
@@ -111,7 +111,7 @@ export default {
      */
     checkingScanningProgress: function () {
       axios
-        .get(generateUrl("apps/filechecksum/api/statistic/status"))
+        .get(generateUrl("apps/files_checksum/api/statistic/status"))
         .then((response) => {
           var progress_response = response.data[0];
           this.fileListJson = progress_response;
@@ -138,7 +138,7 @@ export default {
      */
     getFileStatistic: function () {
       axios
-        .get(generateUrl("apps/filechecksum/api/statistic"))
+        .get(generateUrl("apps/files_checksum/api/statistic"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;

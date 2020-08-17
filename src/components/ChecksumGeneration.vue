@@ -57,7 +57,7 @@ export default {
     generateChecksum: function () {
       this.buttonFunctionType = this.buttonFunctionCancel;
       axios
-        .get(generateUrl("apps/filechecksum/api/generatechecksum"))
+        .get(generateUrl("apps/files_checksum/api/generatechecksum"))
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;

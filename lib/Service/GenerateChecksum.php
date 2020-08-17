@@ -1,5 +1,5 @@
 <?php
-namespace OCA\FileChecksum\Service;
+namespace OCA\FilesChecksum\Service;
 
 use \Exception;
 
@@ -57,7 +57,7 @@ class GenerateChecksum extends QueuedJob {
         $this->updateChecksum($fileId,"caculating");
         //caculating  the real SHA1
         $file = $userFolder->getById($fileId)[0];
-        $fileSha1 = sha1($file->getContent());
+        $fileSha1 = generateSha1($file);
         $this->updateChecksum($fileId,$fileSha1);
         echo "updated file checksum : " . $file->getName() . "-".$fileSha4 . "\n";
       }
@@ -66,18 +66,45 @@ class GenerateChecksum extends QueuedJob {
     }
   }
 
-  private function generateSha1(File file): String {
-    
+  private function generateSha1(File $file): String {
+    $temp = tempnam('/tmp/','nextcloud_files_checksum');
+    $file.copy($temp);
+    $fileSha1 = sha1_file($temp);
+    unlink($temp);
+
+    return $fileSha1;
   }
+
+  /** 
+   * update checksum in DB
+   */
   private function updateChecksum(String $fileId,String $fileSha1){
+    if (!checkChecksum()){
+      $qb = $this->db->getQueryBuilder();
+
+      $qb->update('filecache')
+         ->set('checksum', $qb->createNamedParameter("SHA1:" . $fileSha1))
+         ->where(
+           $qb->expr()->eq('fileid', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+         );
+      $cursor = $qb->execute();
+    }
+  }
+
+  /** 
+   * check if checksum already exist
+   */
+  private function checkChecksum(String $fileId): bool {
     $qb = $this->db->getQueryBuilder();
 
-    $qb->update('filecache')
-       ->set('checksum', $qb->createNamedParameter("SHA1:" . $fileSha1))
+    $qb->select('checksum')
+       ->from('filecache')
        ->where(
          $qb->expr()->eq('fileid', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
        );
     $cursor = $qb->execute();
-
+    $row = $cursor->fetch();;
+	  $cursor->closeCursor();
+    return $row;
   }
 }

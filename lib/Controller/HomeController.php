@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\FileChecksum\Controller;
+namespace OCA\FilesChecksum\Controller;
 
 use OCA\Files_External\Config\ExternalMountPoint;
 use OCP\IRequest;

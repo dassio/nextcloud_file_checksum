@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\FileChecksum\Settings;
+namespace OCA\FilesChecksum\Settings;
 
 use \OCP\Settings\ISettings;
 use OCP\AppFramework\Http\TemplateResponse;

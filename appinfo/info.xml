@@ -5,10 +5,10 @@
     <name>File Checksum</name>
     <summary>manage file checksum for better sync</summary>
     <description><![CDATA[manage file checksum for better sync]]></description>
-    <version>0.0.1</version>
+    <version>0.0.5</version>
     <licence>agpl</licence>
     <author mail="dassio_98@163.com" >xiangbin li</author>
-    <namespace>FileChecksum</namespace>
+    <namespace>FilesChecksum</namespace>
     <category>tools</category>
     <bugs>https://github.com/dassio/nextcloud_file_checksum</bugs>
     <dependencies>
@@ -16,7 +16,7 @@
     </dependencies>
 
     <settings>
-		<personal>OCA\FileChecksum\Settings\Personal</personal>
+		<personal>OCA\FilesChecksum\Settings\Personal</personal>
 	</settings>
 
 
