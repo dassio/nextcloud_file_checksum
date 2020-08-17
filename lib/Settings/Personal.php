@@ -53,7 +53,7 @@ class Personal implements ISettings {
 	 */
     public function getForm()
     {
-        return new TemplateResponse('filechecksum', 'index',['setting' => 'personal']);
+        return new TemplateResponse('files_checksum', 'index',['setting' => 'personal']);
     }
 
     /**

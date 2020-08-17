@@ -70,7 +70,7 @@ class FileChecksumApiController extends ApiController
         'file_count_temp_file'=>$this->session['file_count_temp_file'],
         'json_result_temp_file'=>$this->session['json_result_temp_file']
       ]);
-      $command = 'nohup /usr/local/bin/php -q /var/www/html/apps/filechecksum/lib/Command/cron.php  > '. $this->session['proccesss_output_temp_file'] . ' 2>&1 & echo $!;';
+      $command = 'nohup /usr/local/bin/php -q /var/www/html/apps/files_checksum/lib/Command/cron.php  > '. $this->session['proccesss_output_temp_file'] . ' 2>&1 & echo $!;';
       $pid = exec($command,$output);
       $this->session->set("pid",(int)$output[0]);
     }
@@ -150,7 +150,7 @@ class FileChecksumApiController extends ApiController
       'json_result_temp_file'=>$this->session['json_result_temp_file']
     ]);
 
-    $command = 'nohup /usr/local/bin/php -q /var/www/html/apps/filechecksum/lib/Command/cron.php  > '. $this->session['proccesss_output_temp_file'] . ' 2>&1 & echo $!;';
+    $command = 'nohup /usr/local/bin/php -q /var/www/html/apps/files_checksum/lib/Command/cron.php  > '. $this->session['proccesss_output_temp_file'] . ' 2>&1 & echo $!;';
     
     $pid = exec($command,$output);
     $this->session->set("checksum_pid",(int)$output[0]);

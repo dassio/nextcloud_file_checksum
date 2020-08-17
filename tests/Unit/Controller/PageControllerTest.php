@@ -17,7 +17,7 @@ class PageControllerTest extends PHPUnit_Framework_TestCase {
 		$request = $this->getMockBuilder('OCP\IRequest')->getMock();
 
 		$this->controller = new PageController(
-			'filechecksum', $request, $this->userId
+			'files_checksum', $request, $this->userId
 		);
 	}
 

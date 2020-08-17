@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>filechecksum</id>
+    <id>files_checksum</id>
     <name>File Checksum</name>
     <summary>manage file checksum for better sync</summary>
     <description><![CDATA[manage file checksum for better sync]]></description>

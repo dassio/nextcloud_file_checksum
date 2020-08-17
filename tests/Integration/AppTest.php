@@ -17,13 +17,13 @@ class AppTest extends TestCase {
 
     public function setUp() {
         parent::setUp();
-        $app = new App('filechecksum');
+        $app = new App('files_checksum');
         $this->container = $app->getContainer();
     }
 
     public function testAppInstalled() {
         $appManager = $this->container->query('OCP\App\IAppManager');
-        $this->assertTrue($appManager->isInstalled('filechecksum'));
+        $this->assertTrue($appManager->isInstalled('files_checksum'));
     }
 
 }

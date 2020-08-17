@@ -42,6 +42,6 @@ class HomeController extends Controller
 	 */
 	public function index()
 	{
-		return new TemplateResponse('filechecksum', 'index');  // templates/index.php
+		return new TemplateResponse('files_checksum', 'index');  // templates/index.php
 	}
 }
