@@ -7,7 +7,6 @@ use OCP\AppFramework\Db\Entity;
 
 class ScannedFile extends Entity implements JsonSerializable {
 
-    protected $fileId;
 		// only filename
     protected $fileName;
 		// the full path
@@ -20,9 +19,17 @@ class ScannedFile extends Entity implements JsonSerializable {
     protected $finished;
     protected $scannedNum;
 
+    public function __construct() {
+      $this->addType('id','integer');
+      $this->addType('external', 'boolean');
+      $this->addType('finished', 'boolean');
+      $this->addType('time','integer');
+      $this->addType('scannedNum','integer');
+     }
+
     public function jsonSerialize() {
         return [
-            'file_id' => $this->fileId,
+            'id' => $this->id,
             'file_name' => $this->fileName,
             'base_name' => $this->baseName,
 						'type' => $this->type,

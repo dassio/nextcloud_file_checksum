@@ -15,96 +15,99 @@ use OCP\Files\Node;
 use OCA\FilesChecksum\Db\ScannedFileMapper;
 use OCA\FilesChecksum\Db\ScannedFile;
 
-class FileList extends QueuedJob {
+class FileList extends QueuedJob
+{
 
   /** @var string */
-  private $userId;
-  /** @var IRootFolder */
-  private $rootFolder;
-  /** @var string */
-  private $json_result_temp_file;
-  /** @var string */
-  private $file_count_temp_file;
-  /** @var int */
-  private $file_count;
-  private $scannedMapper;
+    private $userId;
+    /** @var IRootFolder */
+    private $rootFolder;
+    /** @var string */
+    private $json_result_temp_file;
+    /** @var string */
+    private $file_count_temp_file;
+    /** @var int */
+    private $file_count;
+    private $scannedMapper;
 
 
 
-  public function __construct(ITimeFactory $time, IRootFolder $rootFolder,ScannedFileMapper $scannedMapper) {
-    parent::__construct($time);
-    $this->rootFolder = $rootFolder;
-    $this->file_count = 0;
-    $this->scannedMapper = $scannedMapper;
-  }
-
-  /**
-   * Main Funtion
-   */
-  protected function run($arguments) {
-    try{
-      $folder = $arguments['folder'];
-      $this->userId = $arguments['uid'];
-
-      echo "start scanning for user" . "\n";
-
-      if ($folder == 'root') {
-        $userFolder = $this->rootFolder->getUserFolder($this->userId);
-      } else {
-        $userFolder = $this->rootFolder->getPath($folder);
-      }
-
-      $data = $this->scanCurrentFolderFiles($userFolder);
-    } catch (Exception $e) {
-      echo 'Caught exception: ',  $e->getMessage(), "\n";
-    }
-    
-    //using specical file with file_id=-1 for progress tracking
-    if ( !($this->hasProgressFile()) ){
-      $this->addProgressFile();
+    public function __construct(ITimeFactory $time, IRootFolder $rootFolder, ScannedFileMapper $scannedMapper)
+    {
+        parent::__construct($time);
+        $this->rootFolder = $rootFolder;
+        $this->file_count = 0;
+        $this->scannedMapper = $scannedMapper;
     }
 
-    $result = $this->formatData($data);
-    $this->saveScannedFile($result);
-    $this->updateProgress(true);
-  }
+    /**
+     * Main Funtion
+     */
+    protected function run($arguments)
+    {
+        try {
+            $folder = $arguments['folder'];
+            $this->userId = $arguments['uid'];
 
-  /**
-   * @param string $folder
-   */
-  private function scanCurrentFolderFiles(Folder $folder): iterable
-  {
-    $nodes = $folder->getDirectoryListing();
+            echo "start scanning for user" . "\n";
 
-    foreach ($nodes as $node) {
-      if ($node instanceof Folder) {
-        echo "start scanning folder : " . $node->getPath() . " : " . $this->file_count . "\n";
-        $this->updateProgress(false);
-        foreach ( $this->scanCurrentFolderFiles($node) as $subnode) {
-          if ($subnode instanceof File){
-            yield $subnode;
-          }
+            if ($folder == 'root') {
+                $userFolder = $this->rootFolder->getUserFolder($this->userId);
+            } else {
+                $userFolder = $this->rootFolder->getPath($folder);
+            }
+
+            $data = $this->scanCurrentFolderFiles($userFolder);
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
         }
-      } elseif ($node instanceof File) {
-        yield $node;
-      }
+
+        //using specical file with file_id=-1 for progress tracking
+        if (!($this->hasProgressFile())) {
+            $this->addProgressFile();
+        }
+
+        $result = $this->formatData($data);
+        $this->saveScannedFile($result);
+        $this->updateProgress(true);
     }
-  }
 
-  private function formatData(iterable $nodes): array
-  {
-    $userFolder = $this->rootFolder->getUserFolder($this->userId);
+    /**
+     * @param string $folder
+     */
+    private function scanCurrentFolderFiles(Folder $folder): iterable
+    {
+        $nodes = $folder->getDirectoryListing();
 
-    $result = [];
-    /** @var Node $node */
-    foreach ($nodes as $node) {
-      $this->file_count++;
-      $isRoot = $node === $userFolder;
-      $external = $node->getMountPoint() instanceof ExternalMountPoint;
-      $path = $userFolder->getRelativePath($node->getPath());
-      $hasChecksum = $node->getChecksum() != "";
+        foreach ($nodes as $node) {
+            if ($node instanceof Folder) {
+                echo "start scanning folder : " . $node->getPath() . " : " . $this->file_count . "\n";
+                $this->updateProgress(false);
+                foreach ($this->scanCurrentFolderFiles($node) as $subnode) {
+                    if ($subnode instanceof File) {
+                        yield $subnode;
+                    }
+                }
+            } elseif ($node instanceof File) {
+                yield $node;
+            }
+        }
+    }
 
-      $result[] = [
+    private function formatData(iterable $nodes): array
+    {
+        $userFolder = $this->rootFolder->getUserFolder($this->userId);
+
+        $result = [];
+        /** @var Node $node */
+        foreach ($nodes as $node) {
+            $this->file_count++;
+            $isRoot = $node === $userFolder;
+            $external = $node->getMountPoint() instanceof ExternalMountPoint;
+            $path = $userFolder->getRelativePath($node->getPath());
+            $hasChecksum = $node->getChecksum() != "";
+
+            $result[] = [
         'basename' => $isRoot ? '' : $node->getName(),
         'fileid' => $node->getId(),
         'filename' => $path,
@@ -113,55 +116,68 @@ class FileList extends QueuedJob {
         'external' => $external,
         'hasChecksum' => $hasChecksum,
       ];
+        }
+        return $result;
     }
-    return $result;
-  }
 
-  private function saveScannedFile(Array $result){
-    $time = new \DateTime("now");
-    foreach ($result as $item){
-      $file = new ScannedFile();
-      $file->setFileId($item['fileid']);
-      $file->setFileName($item['filename']);
-      $file->setBaseName($item['basename']);
-      $file->setType($item['type']);
-      $file->setExternal($item['external']);
-      $file->setUserId($this->userId);
-      $file->setTime($time);
-      $this->scannedMapper->insert($file);
+    private function saveScannedFile(array $result)
+    {
+        $time = new \DateTime("now");
+        $datetime = $time->getTimestamp();
+        foreach ($result as $item) {
+            $file = new ScannedFile();
+            $file->setId($item['fileid']);
+            $file->setFileName($item['filename']);
+            $file->setBaseName($item['basename']);
+            $file->setType($item['type']);
+            $file->setExternal($item['external']);
+            $file->setUserId($this->userId);
+            $file->setTime($datetime);
+            $this->scannedMapper->insert($file);
+        }
     }
-  }
 
-  /** 
-   * using file id -1 for progress monitor
-   * 
-   **/
-  private function addProgressFile(){
-    $finishedFile = new ScannedFile();
-    $file->setFileId(-1);
-    $file->setFileName("test");
-    $file->setBaseName("test");
-    $file->setType("file");
-    $file->setExternal(false);
-    $file->setUserId($this->userId);
-    $file->setFileId(false);
-    $file->setTime(new \DateTime());
+    /**
+     * using file id -1 for progress monitor
+     *
+     **/
+    private function addProgressFile()
+    {
+        $datetime = new \DateTime("now");
+        $datetime = $datetime->getTimestamp();
 
-    $this->scannedMapper->insert($finishedFile);
-  }
-  private function hasProgressFile(): bool {
-    $result = $this->scannedMapper->find(-1,$this->userId);
-    return true;
-  }
+        $finishedFile = new ScannedFile();
+        $finishedFile->setId(-1);
+        $finishedFile->setFileName("test");
+        $finishedFile->setBaseName("test");
+        $finishedFile->setType("finishedFile");
+        $finishedFile->setExternal(false);
+        $finishedFile->setUserId($this->userId);
+        $finishedFile->setTime($datetime);
+        $finishedFile->setFinished(false);
+        $finishedFile->setScannedNum(0);
 
-  /**
-   * using special file with file_id=-1 for progress tracking
-   * using basename for scanned files number tracking
-   * */
-  private function updateProgress(bool $finished) {
-    $file = $this->scannedMapper->find(-1,$this->userId);
-    $file->setFinished($finished);
-    $file->setScannedNum( $this->file_count );
-  }
+        $this->scannedMapper->insert($finishedFile);
+    }
+    private function hasProgressFile(): bool
+    {
+        $result = $this->scannedMapper->find(-1, $this->userId);
+        if ($result == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
+    /**
+     * using special file with file_id=-1 for progress tracking
+     * using basename for scanned files number tracking
+     * */
+    private function updateProgress(bool $finished)
+    {
+        $file = $this->scannedMapper->find(-1, $this->userId);
+        $file->setFinished($finished);
+        $file->setScannedNum($this->file_count);
+        $this->scannedMapper->update($file);
+    }
 }

@@ -6,6 +6,7 @@ namespace OCA\FilesChecksum\Db;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
 
 class ScannedFileMapper extends QBMapper {
 
@@ -15,18 +16,21 @@ class ScannedFileMapper extends QBMapper {
     parent::__construct($db, $this->table_name,ScannedFile::class);
   }
 
-  public function find(int $fileId,string $userId){
+  public function find(int $id,string $userId){
     $qb = $this->db->getQueryBuilder();
 
     $qb->select('*')
        ->from($this->table_name)
        ->where(
-         $qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+         $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
        )->andWhere(
          $qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_INT))
        );
-
-    return $this->findEntity($qb);
+    try{
+      return $this->findEntity($qb);
+    }catch(DoesNotExistException $e){
+      return null;
+    }
 
   }
   /**
@@ -40,7 +44,7 @@ class ScannedFileMapper extends QBMapper {
     $qb->select('*')
        ->from($this->table_name)
        ->where(
-         $qb->expr()->eq('userid', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_INT))
+         $qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_INT))
        );
 
     return $this->findEntities($qb);

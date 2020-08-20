@@ -36,23 +36,23 @@ export default {
     };
   },
 
-//  mounted: function(){
-//    axios
-//      .get(generateUrl("apps/files_checksum/api/statistic/status"))
-//      .then((response) => {
-//        var progress_response = response.data[0];
-//        this.fileListJson = progress_response;
-//        if(progress_response.progress == "finished") {
-//          //update ui
-//          this.scannedFilesNum = progress_response.fileNum;
-//          this.buttonFunctionType = this.buttonFunctionRescan;
-//
-//          // get final reuslt
-//          this.getFileStatistic();
-//        }
-//      });
-//
-//  },
+  mounted: function(){
+    axios
+      .get(generateUrl("apps/files_checksum/api/statistic/status"))
+      .then((response) => {
+        var progress_response = response.data[0];
+        this.fileListJson = progress_response;
+        if(progress_response.progress == "finished") {
+          //update ui
+          this.scannedFilesNum = progress_response.fileNum;
+          this.buttonFunctionType = this.buttonFunctionRescan;
+
+          // get final reuslt
+          this.getFileStatistic();
+        }
+      });
+
+  },
 
   methods: {
     /*
