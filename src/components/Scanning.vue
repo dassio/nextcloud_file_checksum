@@ -32,7 +32,7 @@ export default {
       buttonFunctionCancel: "Cancel Scanning",
       buttonFunctionRescan: "Rescanning Files",
       buttonFunctionType: "Start Scanning",
-      statusCheckInterval:10000,
+      statusCheckInterval:5000,
     };
   },
 
@@ -142,7 +142,7 @@ export default {
         .then((response) => {
           this.fileListJson = response;
           this.fileListVisibility = true;
-          bus.$emit("sanningFinished",this.fileListJson);
+          setTimeout( ()=> bus.$emit("sanningFinished",this.fileListJson), 2000 );
         });
     },
   },

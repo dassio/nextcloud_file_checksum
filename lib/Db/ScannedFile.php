@@ -18,6 +18,8 @@ class ScannedFile extends Entity implements JsonSerializable {
 		protected $time;
     protected $finished;
     protected $scannedNum;
+    protected $hasChecksum;
+    protected $metadata;
 
     public function __construct() {
       $this->addType('id','integer');
@@ -25,6 +27,7 @@ class ScannedFile extends Entity implements JsonSerializable {
       $this->addType('finished', 'boolean');
       $this->addType('time','integer');
       $this->addType('scannedNum','integer');
+      $this->addType('hasChecksum','boolean');
      }
 
     public function jsonSerialize() {
@@ -37,7 +40,9 @@ class ScannedFile extends Entity implements JsonSerializable {
 						'user_id'  => $this->userId,
 						'time' => $this->time,
             'finished' => $this->finished,
-            'scanned_num' => $thid->scannedNum
+            'scanned_num' => $this->scannedNum,
+            'has_checksum' => $this->hasChecksum,
+            'metedata' => $this->metadata,
         ];
     }
 }

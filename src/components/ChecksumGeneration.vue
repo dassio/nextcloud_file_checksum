@@ -36,7 +36,6 @@ export default {
     drawChart: function(){
       this.$refs.generateChecksum.classList.remove('disabled');
       this.$refs.generateChecksum.removeAttribute("disabled");
-
       var ctxD = this.$refs.fileChecksumPercentage;
       var fielWithChecksumNum = this.fileListJson.data.filter(x => x.hasChecksum).length;
       var fileWithoutChecksumNum = this.fileListJson.data.length - fielWithChecksumNum;

@@ -5,7 +5,7 @@
     <name>File Checksum</name>
     <summary>manage file checksum for better sync</summary>
     <description><![CDATA[manage file checksum for better sync]]></description>
-    <version>0.0.8</version>
+    <version>0.0.12</version>
     <licence>agpl</licence>
     <author mail="dassio_98@163.com" >xiangbin li</author>
     <namespace>FilesChecksum</namespace>
